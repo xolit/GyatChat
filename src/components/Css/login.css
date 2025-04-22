@@ -1,0 +1,89 @@
+:root {
+  --primary: #1c1f2b;
+  --secondary: #2b2f3b;
+  --accent: #5568fe;
+  --accent-dark: #3d5875;
+  --text-light: #f1f1f1;
+  --text-dark: #0a0a0a;
+  --radius: 12px;
+  --transition: all 0.3s ease;
+}
+
+.switch-Route-link{
+  cursor: pointer;
+  color: var(--text-light);
+  text-decoration: none;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  display: block;
+  text-decoration: underline;
+}
+
+.passReset{ 
+  color: var(--text-light);
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+body {
+  background-color: var(--primary);
+  color: var(--text-light);
+  font-family: "Segoe UI", sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.auth-container {
+  max-width: 400px;
+  margin: 8vh auto;
+  padding: 2rem;
+  background-color: var(--secondary);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  transition: var(--transition);
+}
+
+.auth-container h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: var(--accent);
+}
+
+.auth-container input {
+  width: 100%;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  border: none;
+  border-radius: var(--radius);
+  background-color: var(--primary);
+  color: var(--text-light);
+  outline: none;
+  transition: var(--transition);
+}
+
+.auth-container input:focus {
+  background-color: var(--accent-dark);
+}
+
+.auth-container button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--accent);
+  color: var(--text-light);
+  border: none;
+  border-radius: var(--radius);
+  margin-top: 1rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.auth-container button:hover {
+  background-color: var(--accent-dark);
+}
+
+.error-message {
+  margin-top: 1rem;
+  color: #ff6b6b;
+  text-align: center;
+}
