@@ -29,14 +29,15 @@ function GlobalChat() {
           localStorage.setItem("isFamilyMember", "true");
           navigate("/chat");
         } else {
-          alert("You are not a family member. You will continue in global chat.");
+          alert(
+            "You are not a family member. You will continue in global chat."
+          );
         }
       }
     };
-  
+
     checkFamilyCode();
   }, [navigate]);
-  
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -99,7 +100,10 @@ function GlobalChat() {
                   Logout
                 </button>
                 {localStorage.getItem("isFamilyMember") === "true" && (
-                  <button className="chat-btn" onClick={() => navigate("/chat")}>
+                  <button
+                    className="chat-btn"
+                    onClick={() => navigate("/chat")}
+                  >
                     Family Chat
                   </button>
                 )}
@@ -114,7 +118,8 @@ function GlobalChat() {
 
       <div className="messages-container">
         <div className="first-message-indicator">
-          Note: Global chat is visible to all logged-in users.
+          Note: Global chat is visible to all logged-in users. Messages will be
+          deleted after 30 Days.
         </div>
 
         {messages.length === 0 ? (

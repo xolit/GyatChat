@@ -33,14 +33,15 @@ const Signup = () => {
       const userCredential = await signInWithPopup(auth, provider);
       const user = userCredential.user;
 
+      await set(ref(db, `users/${user.uid}`), {
+        isFamilyMember: true,
+      });
+
       const askCode = prompt("Enter the code to access the family chat:");
       const isFamily = validateFamilyCode(askCode);
 
       if (isFamily) {
         localStorage.setItem("isFamilyMember", "true");
-        await set(ref(db, `users/${user.uid}`), {
-          isFamilyMember: true,
-        });
         navigate("/chat");
       } else {
         navigate("/global-chat");

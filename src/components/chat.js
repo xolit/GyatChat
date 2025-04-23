@@ -94,7 +94,7 @@ function Chat() {
 
       <div className="messages-container">
         <div className="first-message-indicator">
-          Note: Messages are visible to family members only.
+          Note: Messages are visible to family members only. Messages will be deleted after 30Days.
         </div>
 
         {messages.length === 0 ? (
