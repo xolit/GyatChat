@@ -1,11 +1,13 @@
+
 import React, { useState } from "react";
 import {
   createUserWithEmailAndPassword,
   updateProfile,
   sendEmailVerification,
+  signInWithPopup,
 } from "firebase/auth";
 import { ref, set } from "firebase/database";
-import { auth, db } from "../firebase";
+import { auth, db, provider } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import "./Css/login.css";
 
@@ -17,6 +19,39 @@ const Signup = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const FRIENDS_CHAT_CODE = process.env.REACT_APP_FRIENDS_CHAT_CODE;
+
+  const validateFamilyCode = (code) => code === FRIENDS_CHAT_CODE;
+
+  const continueWithGoogle = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const userCredential = await signInWithPopup(auth, provider);
+      const user = userCredential.user;
+
+      const askCode = prompt("Enter the code to access the family chat:");
+      const isFamily = validateFamilyCode(askCode);
+
+      if (isFamily) {
+        localStorage.setItem("isFamilyMember", "true");
+        await set(ref(db, `users/${user.uid}`), {
+          isFamilyMember: true,
+        });
+        navigate("/chat");
+      } else {
+        navigate("/global-chat");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Google Sign-in failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -31,8 +66,8 @@ const Signup = () => {
       );
       const user = userCredential.user;
 
-      // Set display name
-      await updateProfile(user, { displayName: name, password: pass });
+      // Set user name
+      await updateProfile(user, { displayName: name });
 
       // Send email verification
       await sendEmailVerification(user, {
@@ -40,31 +75,25 @@ const Signup = () => {
         handleCodeInApp: false,
       });
 
-      const isFamily = code === process.env.REACT_APP_FRIENDS_CHAT_CODE;
-
-      // Save isFamilyMember to Firebase DB
-      await set(ref(db, `users/${user.uid}`), {
-        isFamilyMember: isFamily,
-      });
-
-      // Save to localStorage
-      if (isFamily) {
-        localStorage.setItem("isFamilyMember", "true");
-      }
-
       alert(
         "Verification email sent! Please check your inbox before logging in."
       );
       navigate("/login");
     } catch (err) {
-      if (err.code === "auth/invalid-email") {
-        setError("Invalid email address. Please check and try again.");
-      } else if (err.code === "auth/weak-password") {
-        setError("Password is too weak. It must be at least 6 characters.");
-      } else if (err.code === "auth/email-already-in-use") {
-        setError("Email is already in use. Please choose another one.");
-      } else {
-        setError("An error occurred. Please try again.");
+      console.error(err);
+      switch (err.code) {
+        case "auth/invalid-email":
+          setError("Invalid email address.");
+          break;
+        case "auth/weak-password":
+          setError("Password is too weak. Minimum 6 characters.");
+          break;
+        case "auth/email-already-in-use":
+          setError("Email already in use.");
+          break;
+        default:
+          setError("Something went wrong. Please try again.");
+          break;
       }
     } finally {
       setLoading(false);
@@ -106,7 +135,7 @@ const Signup = () => {
           required
         />
         <input
-          type="number"
+          type="text"
           placeholder="Enter Code (optional)"
           value={code}
           onChange={(e) => {
@@ -114,10 +143,20 @@ const Signup = () => {
             setError("");
           }}
         />
+
         {error && <p className="error-message">{error}</p>}
 
         <button type="submit" disabled={loading}>
           {loading ? "Signing Up..." : "Signup"}
+        </button>
+
+        <button
+          type="button"
+          className="google-signup"
+          onClick={continueWithGoogle}
+          disabled={loading}
+        >
+          Continue with Google
         </button>
       </form>
 

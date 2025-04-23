@@ -78,6 +78,11 @@ function Chat() {
                 <button className="logout-btn" onClick={handleLogout}>
                   Logout
                 </button>
+                {localStorage.getItem("isFamilyMember") === "true" && (
+                  <button className="chat-btn" onClick={() => navigate("/global-chat")}>
+                    Global Chat
+                  </button>
+                )}
               </div>
             )}
           </div>

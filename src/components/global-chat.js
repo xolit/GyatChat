@@ -19,6 +19,25 @@ function GlobalChat() {
   const [inputMessage, setInputMessage] = useState("");
   const messagesEndRef = useRef(null);
 
+  useEffect(() => {
+    const checkFamilyCode = () => {
+      const isFamily = localStorage.getItem("isFamilyMember") === "true";
+      if (!isFamily) {
+        const askCode = prompt("Enter the code to access the family chat:");
+        const FRIENDS_CHAT_CODE = process.env.REACT_APP_FRIENDS_CHAT_CODE;
+        if (askCode === FRIENDS_CHAT_CODE) {
+          localStorage.setItem("isFamilyMember", "true");
+          navigate("/chat");
+        } else {
+          alert("You are not a family member. You will continue in global chat.");
+        }
+      }
+    };
+  
+    checkFamilyCode();
+  }, [navigate]);
+  
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     const trimmedMessage = inputMessage.trim();
@@ -79,6 +98,11 @@ function GlobalChat() {
                 <button className="logout-btn" onClick={handleLogout}>
                   Logout
                 </button>
+                {localStorage.getItem("isFamilyMember") === "true" && (
+                  <button className="chat-btn" onClick={() => navigate("/chat")}>
+                    Family Chat
+                  </button>
+                )}
               </div>
             )}
           </div>

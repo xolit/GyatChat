@@ -1,10 +1,8 @@
 import { useState } from "react";
-import { auth, db} from "../firebase";
+import { useNavigate } from "react-router-dom";
+import { auth, db, provider } from "../firebase";
 import { ref, set } from "firebase/database";
-import {
-  signInWithEmailAndPassword,
-  updateProfile,
-} from "firebase/auth";
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import "./Css/login.css";
 
 function Login() {
@@ -13,7 +11,47 @@ function Login() {
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
+  const FRIENDS_CHAT_CODE = process.env.REACT_APP_FRIENDS_CHAT_CODE;
+
+  const validateFamilyCode = (code) => code === FRIENDS_CHAT_CODE;
+
+  const markAsFamilyMember = async (user) => {
+    localStorage.setItem("isFamilyMember", "true");
+    await set(ref(db, `users/${user.uid}`), {
+      isFamilyMember: true,
+    });
+  };
+
+  const continueWithGoogle = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const userCredential = await signInWithPopup(auth, provider);
+      const user = userCredential.user;
+
+      const askCode = prompt("Enter the code to access the family chat:");
+      const isFamily = validateFamilyCode(askCode);
+
+      if (isFamily) {
+        await markAsFamilyMember(user);
+        await set(ref(db, `users/${user.uid}`), {
+          isFamilyMember: true,
+        });
+        navigate("/chat");
+      } else {
+        navigate("/global-chat");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Google Sign-in failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -27,25 +65,30 @@ function Login() {
         password
       );
       const user = userCredential.user;
-      await updateProfile(user, { password: password });
 
-      if (code === process.env.REACT_APP_FRIENDS_CHAT_CODE) {
-        localStorage.setItem("isFamilyMember", "true");
-      }
+      const isFamily = validateFamilyCode(code);
 
-      const isFamily = code === process.env.REACT_APP_FRIENDS_CHAT_CODE;
-
-      // Save isFamilyMember to Firebase DB
-      await set(ref(db, `users/${user.uid}`), {
-        isFamilyMember: isFamily,
-      });
-
-      // Save to localStorage
+      // Save to localStorage if family
       if (isFamily) {
         localStorage.setItem("isFamilyMember", "true");
+        // Save to Firebase DB
+        await set(ref(db, `users/${user.uid}`), {
+          isFamilyMember: isFamily,
+        });
+        navigate("/chat");
+      } else {
+        navigate("/global-chat");
       }
     } catch (err) {
-      setError("Invalid email or password");
+      if (err.code === "auth/invalid-email") {
+        setError("Invalid email format.");
+      } else if (err.code === "auth/user-not-found") {
+        setError("No user found with this email.");
+      } else if (err.code === "auth/wrong-password") {
+        setError("Incorrect password. Please try again.");
+      } else {
+        setError("Failed to login. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -76,6 +119,7 @@ function Login() {
             setError("");
           }}
         />
+
         <input
           type="number"
           placeholder="Enter Code (optional)"
@@ -85,14 +129,25 @@ function Login() {
             setError("");
           }}
         />
+
         <a href="/reset-password" className="switch-Route-link">
           Forgot Password?
         </a>
+
         <button type="submit" disabled={loading}>
           {loading ? "Logging in..." : "Login"}
         </button>
+
+        <button
+          type="button"
+          className="google-signup"
+          onClick={continueWithGoogle}
+          disabled={loading}
+        >
+          Continue with Google
+        </button>
       </form>
- 
+
       <a href="/signup" className="switch-Route-link">
         Don&apos;t have an account? Sign Up
       </a>
